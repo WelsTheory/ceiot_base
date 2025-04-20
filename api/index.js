@@ -42,15 +42,19 @@ app.use(express.static('spa/static'));
 const PORT = 8080;
 
 app.post('/measurement', function (req, res) {
--       console.log("device id    : " + req.body.id + " key         : " + req.body.key + " temperature : " + req.body.t + " humidity    : " + req.body.h);	
-    const {insertedId} = insertMeasurement({id:req.body.id, t:req.body.t, h:req.body.h});
+    //const { id,key, t,bp} = req.body;
+    const timestamp = new Date().toISOString();
+    const devices = db.public.many("SELECT * FROM devices");
+    console.log("device id: " + req.body.id + " key: " + req.body.key + " BMP280 temperature : " + req.body.t + " BMP280 pressure: " + req.body.p + " Timestamp: " + timestamp);	
+    const {insertedId} = insertMeasurement({id:req.body.id, key:req.body.key, bmp280_t:req.body.t, bmp280_p:req.body.p, timestamp:timestamp});
 	res.send("received measurement into " +  insertedId);
 });
 
 app.post('/device', function (req, res) {
-	console.log("device id    : " + req.body.id + " name        : " + req.body.n + " key         : " + req.body.k );
+    const { id,key, t,p} = req.body;
+	console.log("device id : " + req.body.id + " key : " + req.body.k + " temp : " + req.body.t + "pres : " + req.body.p);
 
-    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.n+"', '"+req.body.k+"')");
+    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.n+"', '"+req.body.k+"', '"+req.body.t+"','"+req.body.p+"')");
 	res.send("received new device");
 });
 
@@ -59,14 +63,14 @@ app.get('/web/device', function (req, res) {
 	var devices = db.public.many("SELECT * FROM devices").map( function(device) {
 		console.log(device);
 		return '<tr><td><a href=/web/device/'+ device.device_id +'>' + device.device_id + "</a>" +
-			       "</td><td>"+ device.name+"</td><td>"+ device.key+"</td></tr>";
+			       "</td><td>"+ device.name+"</td><td>"+ device.key+"</td><td>"+ device.t+"</td><td>"+ device.p+"</td></tr>";
 	   }
 	);
 	res.send("<html>"+
 		     "<head><title>Sensores</title></head>" +
 		     "<body>" +
 		        "<table border=\"1\">" +
-		           "<tr><th>id</th><th>name</th><th>key</th></tr>" +
+		           "<tr><th>id</th><th>name</th><th>key</th><th>t</th><th>p</th></tr>" +
 		           devices +
 		        "</table>" +
 		     "</body>" +
@@ -80,6 +84,8 @@ app.get('/web/device/:id', function (req,res) {
 		        "<h1>{{ name }}</h1>"+
 		        "id  : {{ id }}<br/>" +
 		        "Key : {{ key }}" +
+                "Temp : {{ t }}" +
+                "Pres : {{ p }}" +
                      "</body>" +
                 "</html>";
 
@@ -97,10 +103,12 @@ app.get('/term/device/:id', function (req, res) {
     var reset = "\33[0m";
     var template = "Device name " + red   + "   {{name}}" + reset + "\n" +
 		   "       id   " + green + "       {{ id }} " + reset +"\n" +
-	           "       key  " + blue  + "  {{ key }}" + reset +"\n";
+	           "       key  " + blue  + "  {{ key }}" + reset +"\n" +
+               "       temp  " + blue  + "  {{ t }}" + reset +"\n" +
+               "       pres  " + blue  + "  {{ p }}" + reset +"\n" ;
     var device = db.public.many("SELECT * FROM devices WHERE device_id = '"+req.params.id+"'");
     console.log(device);
-    res.send(render(template,{id:device[0].device_id, key: device[0].key, name:device[0].name}));
+    res.send(render(template,{id:device[0].device_id, key: device[0].key, name:device[0].name,temp:device[0].t,presion:device[0].p}));
 });
 
 app.get('/measurement', async (req,res) => {

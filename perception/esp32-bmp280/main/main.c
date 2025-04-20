@@ -28,9 +28,11 @@
 /* HTTP Constants that aren't configurable in menuconfig */
 #define WEB_PATH "/measurement"
 
+#define DEVICE_KEY "12345678"  // Clave del dispositivo
+
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&t=%0.2f&h=%0.2f";
+static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&p=%0.2f";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -70,12 +72,13 @@ static void http_get_task(void *pvParameters)
 
     while(1) {
         if (bmp280_read_float(&dev, &temperature, &pressure, &humidity) != ESP_OK) {
-            ESP_LOGI(TAG, "Temperature/pressure reading failed\n");
-        } else {
+            ESP_LOGI(TAG, "Temperature/pressure reading failed from BMP280 sensor\n");
+        } 
+        else{
             ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
 //            if (bme280p) {
-                ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
-                sprintf(body, BODY, temperature , humidity );
+                //ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
+                sprintf(body, BODY, temperature , pressure );
                 sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
 //	    } else {
 //                sprintf(send_buf, REQUEST_POST, temperature , 0);
@@ -154,6 +157,7 @@ static void http_get_task(void *pvParameters)
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
         ESP_LOGI(TAG, "Starting again!");
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 
