@@ -4,6 +4,7 @@ interface DeviceInt {
   key:string;
   t:string;
   p:string;
+  time: string;
 }
 
 class Main implements EventListenerObject, GETResponseListener {

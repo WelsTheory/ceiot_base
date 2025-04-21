@@ -13,6 +13,7 @@ class ViewMainPage {
             <p>key: ${device.key}</p>
             <p>temp: ${device.t}</p>
             <p>press: ${device.p}</p>
+            <p>time: ${device.time}</p>
           </li>  
           `;
       }
