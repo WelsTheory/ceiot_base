@@ -41,6 +41,32 @@ app.use(express.static('spa/static'));
 
 const PORT = 8080;
 
+// Borrar dispositivo
+//app.delete('/device', function (req, res) {
+//    const deviceId = req.body.id
+//    db.public.none("DELETE FROM devices WHERE device_id = '"+req.body.id+"'");
+//    console.log("Dispositivo "+deviceId+" eliminado");
+//    res.send("Dispositivo "+deviceId+" eliminado");
+//});
+
+app.delete('/device', async (req, res) => {
+    const { deviceId } = req.body;
+
+    if (!deviceId) {
+        return res.status(400).send("Falta el deviceId");
+    }
+
+    try {
+        await db.public.none("DELETE FROM devices WHERE device_id = $1", [deviceId]);
+        console.log("Dispositivo ${deviceId} eliminado");
+        res.send("Dispositivo ${deviceId} eliminado");
+    } catch (err) {
+        console.error("Error al eliminar el dispositivo:", err);
+        res.status(500).send("Error al eliminar el dispositivo");
+    }
+});
+
+
 app.post('/measurement', function (req, res) {
     //const { id,key, t,bp} = req.body;
     const timestamp = new Date().toISOString();
@@ -51,13 +77,10 @@ app.post('/measurement', function (req, res) {
 });
 
 app.post('/device', function (req, res) {
-    const { id,key, t,p} = req.body;
-	console.log("device id : " + req.body.id + " key : " + req.body.k + " temp : " + req.body.t + "pres : " + req.body.p);
-
-    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.n+"', '"+req.body.k+"', '"+req.body.t+"','"+req.body.p+"')");
+	console.log("device id : " + req.body.id + "name : " +req.body.name + " key : " + req.body.key + " temp : " + req.body.t + "pres : " + req.body.p);
+    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.name+"', '"+req.body.key+"', '"+req.body.t+"','"+req.body.p+"')");
 	res.send("received new device");
 });
-
 
 app.get('/web/device', function (req, res) {
 	var devices = db.public.many("SELECT * FROM devices").map( function(device) {
@@ -92,7 +115,7 @@ app.get('/web/device/:id', function (req,res) {
 
     var device = db.public.many("SELECT * FROM devices WHERE device_id = '"+req.params.id+"'");
     console.log(device);
-    res.send(render(template,{id:device[0].device_id, key: device[0].key, name:device[0].name}));
+    res.send(render(template,{id:device[0].device_id,name:device[0].name, key: device[0].key, t:device[0].t, p:device[0].p}));
 });	
 
 
@@ -108,7 +131,7 @@ app.get('/term/device/:id', function (req, res) {
                "       pres  " + blue  + "  {{ p }}" + reset +"\n" ;
     var device = db.public.many("SELECT * FROM devices WHERE device_id = '"+req.params.id+"'");
     console.log(device);
-    res.send(render(template,{id:device[0].device_id, key: device[0].key, name:device[0].name,temp:device[0].t,presion:device[0].p}));
+    res.send(render(template,{id:device[0].device_id, name:device[0].name,key: device[0].key, t:device[0].t,p:device[0].p}));
 });
 
 app.get('/measurement', async (req,res) => {
@@ -130,7 +153,7 @@ startDatabase().then(async() => {
     await insertMeasurement({id:'01', t:'17', h:'77'});
     console.log("mongo measurement database Up");
 
-    db.public.none("CREATE TABLE devices (device_id VARCHAR, name VARCHAR, key VARCHAR)");
+    db.public.none("CREATE TABLE devices (device_id VARCHAR, name VARCHAR, key VARCHAR, t VARCHAR, p VARCHAR)");
     db.public.none("INSERT INTO devices VALUES ('00', 'Fake Device 00', '123456')");
     db.public.none("INSERT INTO devices VALUES ('01', 'Fake Device 01', '234567')");
     db.public.none("CREATE TABLE users (user_id VARCHAR, name VARCHAR, key VARCHAR)");

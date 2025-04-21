@@ -26,13 +26,12 @@
 #include "../config.h"
 
 /* HTTP Constants that aren't configurable in menuconfig */
-#define WEB_PATH "/measurement"
-
-#define DEVICE_KEY "12345678"  // Clave del dispositivo
+#define WEB_PATH "/device"
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&p=%0.2f";
+static char *BODY = "id="DEVICE_ID"&name="NAME_DEVICE"&key="DEVICE_KEY"&t= %0.2f&p=%0.2f";
+//static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&p=%0.2f";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -75,9 +74,10 @@ static void http_get_task(void *pvParameters)
             ESP_LOGI(TAG, "Temperature/pressure reading failed from BMP280 sensor\n");
         } 
         else{
-            ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
+            ESP_LOGI(TAG,"Name: %s, Key: %s, Temperature: %.2f C, Pressure: %.2f Pa",NAME_DEVICE,DEVICE_KEY,temperature,pressure);
 //            if (bme280p) {
                 //ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
+                sprintf(body, BODY, NAME_DEVICE , DEVICE_KEY );
                 sprintf(body, BODY, temperature , pressure );
                 sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
 //	    } else {
