@@ -6,6 +6,36 @@ Lo siguiente se puede hacer en cualquier sistema de virtualización por comodida
 
 Desde el paso 2 se puede hacer en una instalación existente, pero es tu responsabilidad resolver las dependencias y conflictos que puedan haber.
 
+## CODIGOS PARA EJECUTAR EL SISTEMA
+
+### ESP32:
+
+. $HOME/esp/esp-idf/export.sh
+
+idf.py build
+
+idf.py -p /dev/ttyUSB0 flash monitor
+
+### DOCKER
+
+docker run -p 27017:27017 mongo:4.0.4
+
+### Node JS
+
+node index.js
+
+### Rebuild
+
+cd /api/spa
+
+./rebuild.sh 
+
+### Tools
+
+/tools
+
+./delete_device.sh 00
+
 ## Paso 1: VM con virtualbox
 
 ### En el anfitrión

@@ -62,24 +62,23 @@ app.post('/device', function (req, res) {
     const timestamp = new Date().toISOString();
      var device = db.public.many("SELECT * FROM devices WHERE device_id = '"+req.body.id+"'");
      if(device.length) {
-        db.public.none("UPDATE devices SET t = '" + req.body.t + "', p = '" + req.body.p + "' WHERE device_id = '" + req.body.id + "'");
+        db.public.none("UPDATE devices SET t = '" + req.body.t + "', p = '" + req.body.p + "', time = '" + timestamp +"' WHERE device_id = '" + req.body.id + "'");
         //db.public.none("UPDATE devices SET t = $1, p = $2, time = $3 WHERE device_id = $4",[req.body.t, req.body.p, timestamp, req.body.id]);
          console.log("Received UPDATE device " + req.body.id + " los valores de temp= " + req.body.t + " y de presion= " + req.body.p + " tiempo: " + timestamp);         
           res.send("Received UPDATE device");    
      } else {
          // Insert
          db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.name+"', '"+req.body.key+"', '"+req.body.t+"','"+req.body.p+"','"+timestamp+"')");
-         console.log("device id : " + req.body.id + "name : " +req.body.name + " key : " + req.body.key + " temp : " + req.body.t + "pres : " + req.body.p);
+         console.log("device id : " + req.body.id + "name : " +req.body.name + " key : " + req.body.key + " temp : " + req.body.t + "pres : " + req.body.p + " tiempo: " + timestamp);
          res.send("received new device");
      }	
 });
 
 app.get('/web/device', function (req, res) {
-    const timestamp = new Date().toISOString();
 	var devices = db.public.many("SELECT * FROM devices").map( function(device) {
 		console.log(device);
 		return '<tr><td><a href=/web/device/'+ device.device_id +'>' + device.device_id + "</a>" +
-			       "</td><td>"+ device.name+"</td><td>"+ device.key+"</td><td>"+ device.t+"</td><td>"+ device.p+"</td><td>"+timestamp+"</td></tr>";
+			       "</td><td>"+ device.name+"</td><td>"+ device.key+"</td><td>"+ device.t+"</td><td>"+ device.p+"</td><td>"+device.time+"</td></tr>";
 	   }
 	);
 	res.send("<html>"+
@@ -94,7 +93,7 @@ app.get('/web/device', function (req, res) {
 });
 
 app.get('/web/device/:id', function (req,res) {
-    const timestamp = new Date().toISOString();
+    //const timestamp = new Date().toISOString();
     var template = "<html>"+
                      "<head><title>Sensor {{name}}</title></head>" +
                      "<body>" +
@@ -110,7 +109,7 @@ app.get('/web/device/:id', function (req,res) {
 
     var device = db.public.many("SELECT * FROM devices WHERE device_id = '"+req.params.id+"'");
     console.log(device);
-    res.send(render(template,{id:device[0].device_id,name:device[0].name, key: device[0].key, t:device[0].t, p:device[0].p, timestamp:device[0].time}));
+    res.send(render(template,{id:device[0].device_id,name:device[0].name, key: device[0].key, t:device[0].t, p:device[0].p, time:device[0].time}));
 });	
 
 
